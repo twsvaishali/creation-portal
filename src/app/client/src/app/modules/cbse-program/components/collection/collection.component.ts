@@ -93,9 +93,9 @@ export class CollectionComponent implements OnInit, OnDestroy {
       collectionType: _.get(this.collectionComponentConfig, 'collectionType'),
       collectionStatus: _.get(this.collectionComponentConfig, 'status')
     }, this.sharedContext);
-    if (this.userProfile.userRegData && this.userProfile.userRegData.User_Org) {
+    /*if (this.userProfile.userRegData && this.userProfile.userRegData.User_Org) {
       this.sessionContext.currentRole = this.userProfile.userRegData.User_Org.roles[0] === 'admin' ? 'CONTRIBUTOR' : 'REVIEWER';
-    }
+    }*/
     this.filters = this.getImplicitFilters();
     this.getCollectionCard();
 
@@ -112,8 +112,8 @@ export class CollectionComponent implements OnInit, OnDestroy {
     this.telemetryInteractCdata = this.programTelemetryService.getTelemetryInteractCdata(this.collectionComponentInput.programContext.programId, 'Program');
     // tslint:disable-next-line:max-line-length
     this.telemetryInteractPdata = this.programTelemetryService.getTelemetryInteractPdata(this.userService.appId, this.configService.appConfig.TELEMETRY.PID + '.programs');
-    this.setActiveDate();
-    this.getNominationStatus();
+    //this.setActiveDate();
+    //this.getNominationStatus();
   }
 
   getImplicitFilters(): string[] {
@@ -334,23 +334,6 @@ export class CollectionComponent implements OnInit, OnDestroy {
       this.toasterService.error('User onboarding failed');
     });
   }
-  setActiveDate() {
-    const dates = [ 'nomination_enddate', 'shortlisting_enddate', 'content_submission_enddate', 'enddate'];
-
-    dates.forEach(key => {
-      const date  = moment(moment(this.programContext[key]).format('YYYY-MM-DD'));
-      const today = moment(moment().format('YYYY-MM-DD'));
-      const isFutureDate = !date.isSame(today) && date.isAfter(today);
-
-      if (key === 'nomination_enddate' && isFutureDate) {
-        this.activeDate = key;
-      }
-
-      if (this.activeDate === '' && isFutureDate) {
-        this.activeDate = key;
-      }
-    });
-  }
 
   expressInterest() {
     const userProfile = this.userService.userProfile;
@@ -371,7 +354,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
     return this.programsService.post(req);
   }
 
-  getNominationStatus() {
+  /*getNominationStatus() {
     const req = {
       url: `${this.configService.urlConFig.URLS.CONTRIBUTION_PROGRAMS.NOMINATION_LIST}`,
       data: {
@@ -413,7 +396,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
     }, error => {
       this.toasterService.error('Failed fetching current nomination status');
     });
-  }
+  }*/
 
   toggleUploadSampleButton(data) {
     data.isSelected = !data.isSelected;

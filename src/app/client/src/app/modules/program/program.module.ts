@@ -10,7 +10,6 @@ import { ProgramRoutingModule } from './program-routing.module';
 import { ListAllProgramsComponent } from './components';
 import { ProgramComponent } from './components/program/program.component';
 import { OnboardPopupComponent } from './components/onboard-popup/onboard-popup.component';
-import { ProgramHeaderComponent } from './components/program-header/program-header.component';
 import { CreateProgramComponent } from './components/create-program/create-program.component';
 import { ProgramNominationsComponent } from './components/program-nominations/program-nominations.component';
 import { ListNominationsComponent } from './components/list-nominations/list-nominations.component';
@@ -25,8 +24,7 @@ import { CommonConsumptionModule} from '@project-sunbird/common-consumption';
 @NgModule({
   declarations: [ListAllProgramsComponent,
     // tslint:disable-next-line:max-line-length
-    ProgramComponent, OnboardPopupComponent,
-    ProgramHeaderComponent, CreateProgramComponent,
+    ProgramComponent, OnboardPopupComponent, CreateProgramComponent,
     ProgramNominationsComponent, ListNominationsComponent,
     ListContributorTextbooksComponent],
   imports: [

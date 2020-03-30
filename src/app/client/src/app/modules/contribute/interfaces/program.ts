@@ -16,6 +16,7 @@ export interface ISessionContext { // TODO: remove any 'textbook' reference
   questionType?: string;
   programId?: string;
   program?: string;
+  nominationFetched?: boolean;
   currentRole?: string;
   currentRoleId?: null | number;
   bloomsLevel?: Array<any>;

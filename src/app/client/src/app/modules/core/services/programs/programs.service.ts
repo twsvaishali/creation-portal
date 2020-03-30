@@ -33,16 +33,16 @@ export class ProgramsService extends DataService implements CanActivate {
   baseUrl: string;
   public http: HttpClient;
   private API_URL = this.publicDataService.post; // TODO: remove API_URL once service is deployed
-
+  public nominationData = false;
   constructor(config: ConfigService, http: HttpClient, private publicDataService: PublicDataService,
     private orgDetailsService: OrgDetailsService, private userService: UserService,
     private extFrameworkService: ExtPluginService, private datePipe: DatePipe,
     private contentService: ContentService, private router: Router,
     private toasterService: ToasterService, private resourceService: ResourceService) {
-      super(http);
-      this.config = config;
-      this.baseUrl = this.config.urlConFig.URLS.CONTENT_PREFIX;
-    }
+    super(http);
+    this.config = config;
+    this.baseUrl = this.config.urlConFig.URLS.CONTENT_PREFIX;
+  }
 
   /**
    * initializes the service is the user is logged in;
@@ -59,7 +59,7 @@ export class ProgramsService extends DataService implements CanActivate {
       url: 'reg/search',
       data:
       {
-        id : 'open-saber.registry.search',
+        id: 'open-saber.registry.search',
         request: reqData
       }
     };
@@ -81,7 +81,7 @@ export class ProgramsService extends DataService implements CanActivate {
       url: 'reg/add',
       data:
       {
-        id : 'open-saber.registry.create',
+        id: 'open-saber.registry.create',
         request: reqData
       }
     };
@@ -95,36 +95,36 @@ export class ProgramsService extends DataService implements CanActivate {
       }));
   }
 
-/**
-  * Function used map the user with user role in registry
-  */
- mapUsertoContributorOrgReg (orgOsid, UserOsid) {
-  // Check if user is alredy part of the orgnisation
-  if (!_.isEmpty(this.userService.userProfile.userRegData.User_Org)) {
-    const userOrg = this.userService.userProfile.userRegData.User_Org;
+  /**
+    * Function used map the user with user role in registry
+    */
+  mapUsertoContributorOrgReg(orgOsid, UserOsid) {
+    // Check if user is alredy part of the orgnisation
+    if (!_.isEmpty(this.userService.userProfile.userRegData.User_Org)) {
+      const userOrg = this.userService.userProfile.userRegData.User_Org;
 
-    if (userOrg.orgId && userOrg.orgId === orgOsid) {
-      this.toasterService.warning(this.resourceService.messages.emsg.contributorjoin.m0002);
-      this.router.navigate(['contribute/myenrollprograms']);
-      return false;
+      if (userOrg.orgId && userOrg.orgId === orgOsid) {
+        this.toasterService.warning(this.resourceService.messages.emsg.contributorjoin.m0002);
+        this.router.navigate(['contribute/myenrollprograms']);
+        return false;
+      }
+
+      if (userOrg.orgId && userOrg.orgId !== orgOsid) {
+        this.toasterService.warning(this.resourceService.messages.emsg.contributorjoin.m0003);
+        this.router.navigate(['contribute/myenrollprograms']);
+        return false;
+      }
     }
 
-    if (userOrg.orgId && userOrg.orgId !== orgOsid) {
-      this.toasterService.warning(this.resourceService.messages.emsg.contributorjoin.m0003);
-      this.router.navigate(['contribute/myenrollprograms']);
-      return false;
-    }
-  }
+    const userOrgAdd = {
+      User_Org: {
+        userId: UserOsid,
+        orgId: orgOsid,
+        roles: ['user']
+      }
+    };
 
-  const userOrgAdd = {
-    User_Org: {
-      userId: UserOsid,
-      orgId: orgOsid,
-      roles: ['user']
-    }
-  };
-
-  this.addToRegistry(userOrgAdd).subscribe(
+    this.addToRegistry(userOrgAdd).subscribe(
       (res) => {
         this.toasterService.success(this.resourceService.messages.smsg.contributorjoin.m0001);
         this.userService.openSaberRegistrySearch().then(() => {
@@ -147,54 +147,54 @@ export class ProgramsService extends DataService implements CanActivate {
    * logic which decides if user is with join link shoule we add him to the organisation or not
    */
   addUsertoContributorOrg(orgId) {
-      // Check if orgnisation exists
-      const orgSearch = {
-        entityType: ["Org"],
-        filters: {
-          osid: {eq : orgId}
+    // Check if orgnisation exists
+    const orgSearch = {
+      entityType: ["Org"],
+      filters: {
+        osid: { eq: orgId }
+      }
+    };
+    this.searchRegistry(orgSearch).subscribe(
+      (response) => {
+        if (_.isEmpty(response.result.Org)) {
+          this.toasterService.warning(this.resourceService.messages.emsg.contributorjoin.m0001);
+          return false;
         }
-      };
-      this.searchRegistry(orgSearch).subscribe(
-        (response) => {
-          if (_.isEmpty(response.result.Org)) {
-            this.toasterService.warning(this.resourceService.messages.emsg.contributorjoin.m0001);
-            return false;
-          }
 
-          const contibutorOrg = response.result.Org[0];
-          const orgOsid = contibutorOrg.osid;
-          if (!this.userService.userProfile.userRegData.User) {
-            // Add user to the registry
-            const userAdd = {
-              User: {
-                firstName: this.userService.userProfile.firstName,
-                lastName: this.userService.userProfile.lastName || '',
-                userId: this.userService.userProfile.identifier,
-                enrolledDate: this.datePipe.transform(new Date(), 'yyyy-MM-dd'),
-                board : contibutorOrg.board,
-                medium: contibutorOrg.medium,
-                gradeLevel: contibutorOrg.gradeLevel,
-                subject: contibutorOrg.subject
-              }
-            };
+        const contibutorOrg = response.result.Org[0];
+        const orgOsid = contibutorOrg.osid;
+        if (!this.userService.userProfile.userRegData.User) {
+          // Add user to the registry
+          const userAdd = {
+            User: {
+              firstName: this.userService.userProfile.firstName,
+              lastName: this.userService.userProfile.lastName || '',
+              userId: this.userService.userProfile.identifier,
+              enrolledDate: this.datePipe.transform(new Date(), 'yyyy-MM-dd'),
+              board: contibutorOrg.board,
+              medium: contibutorOrg.medium,
+              gradeLevel: contibutorOrg.gradeLevel,
+              subject: contibutorOrg.subject
+            }
+          };
 
-            this.addToRegistry(userAdd).subscribe(
-                (res) => {
-                    this.mapUsertoContributorOrgReg(orgOsid, res.result.User.osid);
-                },
-                (error) => {}
-            );
-          } else {
-            this.mapUsertoContributorOrgReg(orgOsid, this.userService.userProfile.userRegData.User.osid);
-          }
-        },
-        (err) => {
-          console.log(err);
-          // TODO: navigate to program list page
-          const errorMes = typeof _.get(err, 'error.params.errmsg') === 'string' && _.get(err, 'error.params.errmsg');
-          this.toasterService.warning(errorMes || this.resourceService.messages.fmsg.contributorjoin.m0001);
+          this.addToRegistry(userAdd).subscribe(
+            (res) => {
+              this.mapUsertoContributorOrgReg(orgOsid, res.result.User.osid);
+            },
+            (error) => { }
+          );
+        } else {
+          this.mapUsertoContributorOrgReg(orgOsid, this.userService.userProfile.userRegData.User.osid);
         }
-      );
+      },
+      (err) => {
+        console.log(err);
+        // TODO: navigate to program list page
+        const errorMes = typeof _.get(err, 'error.params.errmsg') === 'string' && _.get(err, 'error.params.errmsg');
+        this.toasterService.warning(errorMes || this.resourceService.messages.fmsg.contributorjoin.m0001);
+      }
+    );
   }
 
   /**
@@ -227,7 +227,7 @@ export class ProgramsService extends DataService implements CanActivate {
     if (this.userService.userRegistryData &&
       !_.isEmpty(this.userService.userProfile.userRegData.User_Org) &&
       !this.userService.userProfile.userRegData.User_Org.roles.includes('admin')) {
-        return false;
+      return false;
     }
 
     return true;
@@ -363,12 +363,12 @@ export class ProgramsService extends DataService implements CanActivate {
    * makes api call to get list of programs from ext framework Service
    */
   getMyProgramsForContrib(req): Observable<ServerResponse> {
-        const request  = {
-          url: `${this.config.urlConFig.URLS.CONTRIBUTION_PROGRAMS.LIST}`,
-          data: req
-        };
-        return this.API_URL(request);
-    }
+    const request = {
+      url: `${this.config.urlConFig.URLS.CONTRIBUTION_PROGRAMS.LIST}`,
+      data: req
+    };
+    return this.API_URL(request);
+  }
 
   /**
    * gets list of programs
@@ -453,7 +453,6 @@ export class ProgramsService extends DataService implements CanActivate {
     return _.sortBy(_.unionBy(resultArray, 'identifier'), 'index');
   }
 
-
   getNominationList(reqFilters) {
     const req = {
       url: `${this.config.urlConFig.URLS.CONTRIBUTION_PROGRAMS.NOMINATION_LIST}`,
@@ -466,4 +465,77 @@ export class ProgramsService extends DataService implements CanActivate {
     return this.API_URL(req);
   }
 
+  getNominationStatus(programId, sessionContext) {
+    const filters = {};
+    filters['program_id'] = programId;
+
+    if (this.userService.userProfile.userRegData && this.userService.userProfile.userRegData.User_Org) {
+      filters['organisation_id'] = this.userService.userProfile.userRegData.User_Org.orgId;
+    } else {
+      filters['user_id'] = this.userService.userProfile.userId;
+    }
+
+    return this.getNominationList(filters).pipe(
+      mergeMap((data: ServerResponse) => {
+        sessionContext.nominationFetched = true;
+        if (data.result && !_.isEmpty(data.result)) {
+          sessionContext.nominationDetails = _.first(data.result);
+          const currentNominationStatus = _.get(_.first(data.result), 'status');
+          if (this.userService.userProfile.userRegData && this.userService.userProfile.userRegData.User_Org) {
+            sessionContext.currentOrgRole = this.userService.userProfile.userRegData.User_Org.roles[0];
+            if (this.userService.userProfile.userRegData.User_Org.roles[0] === 'admin') {
+              // tslint:disable-next-line:max-line-length
+              sessionContext.currentRole = (currentNominationStatus === 'Approved' || currentNominationStatus === 'Rejected') ? 'REVIEWER' : 'CONTRIBUTOR';
+            } else if (sessionContext.nominationDetails && sessionContext.nominationDetails.rolemapping) {
+              _.find(sessionContext.nominationDetails.rolemapping, (users, role) => {
+                if (_.includes(users, this.userService.userProfile.userRegData.User.userId)) {
+                  sessionContext.currentRole = role;
+                }
+              });
+            } else {
+              sessionContext.currentRole = 'CONTRIBUTOR';
+            }
+          } else {
+            sessionContext.currentRole = 'CONTRIBUTOR';
+            sessionContext.currentOrgRole = 'individual';
+          }
+          return of(data);
+        } else {
+          return throwError(data);
+        }
+      }));
+
+    this.getNominationList(filters).subscribe((data) => {
+      sessionContext.nominationFetched = true;
+      console.log(sessionContext);
+      if (data.result && !_.isEmpty(data.result)) {
+        sessionContext.nominationDetails = _.first(data.result);
+        const currentNominationStatus = _.get(_.first(data.result), 'status');
+        if (this.userService.userProfile.userRegData && this.userService.userProfile.userRegData.User_Org) {
+          sessionContext.currentOrgRole = this.userService.userProfile.userRegData.User_Org.roles[0];
+          if (this.userService.userProfile.userRegData.User_Org.roles[0] === 'admin') {
+            // tslint:disable-next-line:max-line-length
+            sessionContext.currentRole = (currentNominationStatus === 'Approved' || currentNominationStatus === 'Rejected') ? 'REVIEWER' : 'CONTRIBUTOR';
+          } else if (sessionContext.nominationDetails && sessionContext.nominationDetails.rolemapping) {
+            _.find(sessionContext.nominationDetails.rolemapping, (users, role) => {
+              if (_.includes(users, this.userService.userProfile.userRegData.User.userId)) {
+                sessionContext.currentRole = role;
+              }
+            });
+          } else {
+            sessionContext.currentRole = 'CONTRIBUTOR';
+          }
+        } else {
+          sessionContext.currentRole = 'CONTRIBUTOR';
+          sessionContext.currentOrgRole = 'individual';
+        }
+        /*if (this.programDetails.config) {
+          const getCurrentRoleId = _.find(this.programDetails.config.roles, {'name': this.sessionContext.currentRole});
+          this.sessionContext.currentRoleId = (getCurrentRoleId) ? getCurrentRoleId.id : null;
+        }*/
+      }
+    }, error => {
+      this.toasterService.error('Failed fetching current nomination status');
+    });
+  }
 }
