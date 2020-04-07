@@ -4,7 +4,6 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { ProgramComponent } from './components';
 import { ListAllMyProgramsComponent } from './components/list-all-my-programs/list-all-my-programs.component';
-import { ListNominatedTextbooksComponent} from './components/list-nominated-textbooks/list-nominated-textbooks.component';
 import { OrgUserListComponent } from './components/org-user-list/org-user-list.component';
 import { OrgContriAdminComponent } from './components/org-contri-admin/org-contri-admin.component';
 import { ContriDashboardComponent } from './components/dashboard/dashboard.component';
@@ -33,12 +32,6 @@ const routes: Routes = [{
   path: 'program/:programId', component: ProgramComponent,
   data: {
     telemetry: { env: 'creation-portal', type: 'view', subtype: 'paginate', pageid: 'program' }
-  },
-},
-{
-  path: 'nominatedtextbooks/:programId', component: ListNominatedTextbooksComponent,
-  data: {
-    telemetry: { env: 'creation-portal', type: 'view', subtype: 'paginate', pageid: 'list-nominated-textbooks' }
   },
 },
 {

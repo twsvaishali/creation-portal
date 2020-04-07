@@ -9,7 +9,8 @@ export * from './user-location/user-location.component';
 export * from './enroll-contributor/enroll-contributor.component';
 export * from './textbook-list/textbook-list.component';
 export * from './program-list/program-list.component';
-export * from './org-users-list/org-users-list.component';
+export * from './users-list/users-list.component';
+export * from './program-header/program-header.component';
 
 
 

@@ -22,11 +22,15 @@ export class ProgramsService extends DataService implements CanActivate {
 
   private _programsList$ = new BehaviorSubject(undefined);
   private _allowToContribute$ = new BehaviorSubject(undefined);
+  private _selectedCollections$ = new BehaviorSubject(undefined);
 
   public readonly programsList$ = this._programsList$.asObservable()
     .pipe(skipWhile(data => data === undefined || data === null));
 
   public readonly allowToContribute$ = this._allowToContribute$.asObservable()
+    .pipe(skipWhile(data => data === undefined || data === null));
+
+  public readonly selectedCollections$ = this._selectedCollections$.asObservable()
     .pipe(skipWhile(data => data === undefined || data === null));
 
   public config: ConfigService;
@@ -49,6 +53,13 @@ export class ProgramsService extends DataService implements CanActivate {
    */
   public initialize() {
     this.enableContributeMenu().subscribe();
+  }
+
+  /**
+   * Function used to add selected collection while nominating
+   */
+  setSelectedCollections(collections) {
+    this._selectedCollections$.next(collections);
   }
 
   /**
@@ -466,4 +477,83 @@ export class ProgramsService extends DataService implements CanActivate {
     return this.API_URL(req);
   }
 
+  getNominationStatus(programId, sessionContext) {
+    const filters = {};
+    filters['program_id'] = programId;
+
+    if (this.userService.userProfile.userRegData && this.userService.userProfile.userRegData.User_Org) {
+      filters['organisation_id'] = this.userService.userProfile.userRegData.User_Org.orgId;
+    } else {
+      filters['user_id'] = this.userService.userProfile.userId;
+    }
+
+    return this.getNominationList(filters).pipe(
+      mergeMap((data: ServerResponse) => {
+        sessionContext.nominationFetched = true;
+        if (data.params.status.toUpperCase() !== 'SUCCESSFUL') {
+          return throwError(data);
+        } else {
+          if (!_.isEmpty(data.result)) {
+            sessionContext.nominationDetails = _.first(data.result);
+            const currentNominationStatus = _.get(_.first(data.result), 'status');
+            if (this.userService.userProfile.userRegData && this.userService.userProfile.userRegData.User_Org) {
+              sessionContext.currentOrgRole = this.userService.userProfile.userRegData.User_Org.roles[0];
+              if (this.userService.userProfile.userRegData.User_Org.roles[0] === 'admin') {
+                // tslint:disable-next-line:max-line-length
+                sessionContext.currentRole = (currentNominationStatus === 'Approved' || currentNominationStatus === 'Rejected') ? 'REVIEWER' : 'CONTRIBUTOR';
+              } else if (sessionContext.nominationDetails && sessionContext.nominationDetails.rolemapping) {
+                _.find(sessionContext.nominationDetails.rolemapping, (users, role) => {
+                  if (_.includes(users, this.userService.userProfile.userRegData.User.userId)) {
+                    sessionContext.currentRole = role;
+                  }
+                });
+              } else {
+                sessionContext.currentRole = 'CONTRIBUTOR';
+              }
+            } else {
+              sessionContext.currentRole = 'CONTRIBUTOR';
+              sessionContext.currentOrgRole = 'individual';
+            }
+            /*if (this.programDetails.config) {
+              const getCurrentRoleId = _.find(this.programDetails.config.roles, {'name': this.sessionContext.currentRole});
+              this.sessionContext.currentRoleId = (getCurrentRoleId) ? getCurrentRoleId.id : null;
+            }*/
+          }
+            return of(data);
+        }
+    }));
+
+    this.getNominationList(filters).subscribe((data) => {
+      sessionContext.nominationFetched = true;
+      console.log(sessionContext);
+      if (data.result && !_.isEmpty(data.result)) {
+        sessionContext.nominationDetails = _.first(data.result);
+        const currentNominationStatus = _.get(_.first(data.result), 'status');
+        if (this.userService.userProfile.userRegData && this.userService.userProfile.userRegData.User_Org) {
+          sessionContext.currentOrgRole = this.userService.userProfile.userRegData.User_Org.roles[0];
+          if (this.userService.userProfile.userRegData.User_Org.roles[0] === 'admin') {
+            // tslint:disable-next-line:max-line-length
+            sessionContext.currentRole = (currentNominationStatus === 'Approved' || currentNominationStatus === 'Rejected') ? 'REVIEWER' : 'CONTRIBUTOR';
+          } else if (sessionContext.nominationDetails && sessionContext.nominationDetails.rolemapping) {
+            _.find(sessionContext.nominationDetails.rolemapping, (users, role) => {
+              if (_.includes(users, this.userService.userProfile.userRegData.User.userId)) {
+                sessionContext.currentRole = role;
+              }
+            });
+          } else {
+            sessionContext.currentRole = 'CONTRIBUTOR';
+          }
+        } else {
+          sessionContext.currentRole = 'CONTRIBUTOR';
+          sessionContext.currentOrgRole = 'individual';
+        }
+        /*if (this.programDetails.config) {
+          const getCurrentRoleId = _.find(this.programDetails.config.roles, {'name': this.sessionContext.currentRole});
+          this.sessionContext.currentRoleId = (getCurrentRoleId) ? getCurrentRoleId.id : null;
+        }*/
+      }
+    }, error => {
+      this.toasterService.error('Failed fetching current nomination status');
+    });
+  }
 }

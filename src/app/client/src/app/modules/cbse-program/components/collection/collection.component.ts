@@ -331,11 +331,13 @@ export class CollectionComponent implements OnInit, OnDestroy {
     } else {
       this.selectedCollectionIds.push(rowId);
     }
-    if (this.selectedCollectionIds.length > 0) {
+
+    this.programsService.setSelectedCollections(this.selectedCollectionIds);
+    /*if (this.selectedCollectionIds.length > 0) {
       this.nominateButton = 'show';
     } else {
       this.nominateButton = 'hide';
-    }
+    }*/
   }
   redirect() {
 
@@ -513,7 +515,7 @@ export class CollectionComponent implements OnInit, OnDestroy {
   toggleUploadSampleButton(data) {
     data.isSelected = !data.isSelected;
   }
-
+// Check for duplicate
   canNominate() {
     const today = moment();
     return moment(this.programContext.nomination_enddate).isSameOrAfter(today, 'day');

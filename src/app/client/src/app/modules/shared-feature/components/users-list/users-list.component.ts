@@ -6,11 +6,11 @@ import { forkJoin } from 'rxjs';
 
 
 @Component({
-  selector: 'app-org-users-list',
-  templateUrl: './org-users-list.component.html',
-  styleUrls: ['./org-users-list.component.scss']
+  selector: 'app-users-list',
+  templateUrl: './users-list.component.html',
+  styleUrls: ['./users-list.component.scss']
 })
-export class OrgUsersListComponent implements OnInit {
+export class UsersListComponent implements OnInit {
   public contributorOrgUser: any = [];
   public orgDetails: any = {};
   public showLoader = true;

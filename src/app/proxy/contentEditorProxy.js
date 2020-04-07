@@ -12,10 +12,7 @@ const telemetryHelper = require('../helpers/telemetryHelper')
 const learnerURL = envHelper.LEARNER_URL
 const kp_content_service_base_url = envHelper.kp_content_service_base_url
 const kp_learning_service_base_url = envHelper.kp_learning_service_base_url
-const kp_assessment_service_base_url = envHelper.kp_assessment_service_base_url
-
 module.exports = function (app) {
-
   const proxyReqPathResolverMethod = function (req) {
     return require('url').parse(contentProxyUrl + req.originalUrl).path
   }
@@ -28,118 +25,69 @@ module.exports = function (app) {
       return require('url').parse(contentServiceBaseUrl + originalUrl).path
     }
   }))
-
   app.use('/content-plugins/*', proxy(contentProxyUrl, {
     preserveHostHdr: true,
     proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
     proxyReqPathResolver: proxyReqPathResolverMethod
   }))
-
   app.use('/plugins/*', proxy(contentProxyUrl, {
     preserveHostHdr: true,
     proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
     proxyReqPathResolver: proxyReqPathResolverMethod
   }))
-
   app.use('/assets/public/*', proxy(contentProxyUrl, {
     preserveHostHdr: true,
     proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
     proxyReqPathResolver: proxyReqPathResolverMethod
   }))
-
   app.use('/content/preview/*', proxy(contentProxyUrl, {
     preserveHostHdr: true,
     proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
     proxyReqPathResolver: proxyReqPathResolverMethod
   }))
-
   // Log telemetry for action api's
   app.all('/action/*', telemetryHelper.generateTelemetryForProxy)
-
-
   // Proxy for content create , update & review Start
-  app.use('/action/content/v3/create',  proxy(kp_content_service_base_url, {
-    proxyReqPathResolver: function (req) {
-      var originalUrl = req.originalUrl
-      originalUrl = originalUrl.replace('/action/', '')
-      return require('url').parse(kp_content_service_base_url + originalUrl).path
-    }
-  }))
-
-  app.use('/action/content/v3/hierarchy/add',  proxy(kp_content_service_base_url, {
-    proxyReqPathResolver: function (req) {
-      var originalUrl = req.originalUrl
-      originalUrl = originalUrl.replace('/action/', '')
-      return require('url').parse(kp_content_service_base_url + originalUrl).path
-    }
-  }))
-
-  app.use('/action/content/v3/update/*',  proxy(kp_content_service_base_url, {
-    proxyReqPathResolver: function (req) {
-      var originalUrl = req.originalUrl
-      originalUrl = originalUrl.replace('/action/', '')
-      return require('url').parse(kp_content_service_base_url + originalUrl).path
-    }
-  }))
-
-  app.use('/action/content/v3/upload/*',  proxy(kp_learning_service_base_url, {
-    proxyReqPathResolver: function (req) {
-      var originalUrl = req.originalUrl
-      originalUrl = originalUrl.replace('/action/', '')
-      return require('url').parse(kp_learning_service_base_url + originalUrl).path
-    }
-  }))
-
-  app.use('/action/content/v3/review/*',  proxy(kp_learning_service_base_url, {
-    proxyReqPathResolver: function (req) {
-      var originalUrl = req.originalUrl
-      originalUrl = originalUrl.replace('/action/', '')
-      return require('url').parse(kp_learning_service_base_url + originalUrl).path
-    }
-  }))
-
-  app.use('/action/assessment/v3/items/*',  proxy(kp_learning_service_base_url, {
-    proxyReqPathResolver: function (req) {
-      var originalUrl = req.originalUrl
-      originalUrl = originalUrl.replace('/action/', '')
-      return require('url').parse(kp_learning_service_base_url + originalUrl).path
-    }
-  }))
-
-  app.use('/action/itemset/v3/create',  proxy(kp_assessment_service_base_url, {
-    proxyReqPathResolver: function (req) {
-      var originalUrl = req.originalUrl
-      originalUrl = originalUrl.replace('/action/', '')
-      return require('url').parse(kp_assessment_service_base_url + originalUrl).path
-    }
-  }))
-
-  app.use('/action/itemset/v3/update/*',  proxy(kp_assessment_service_base_url, {
-    proxyReqPathResolver: function (req) {
-      var originalUrl = req.originalUrl
-      originalUrl = originalUrl.replace('/action/', '')
-      return require('url').parse(kp_assessment_service_base_url + originalUrl).path
-    }
-  }))
-
-  app.use('/action/itemset/v3/read/*',  proxy(kp_assessment_service_base_url, {
-    proxyReqPathResolver: function (req) {
-      var originalUrl = req.originalUrl
-      originalUrl = originalUrl.replace('/action/', '')
-      return require('url').parse(kp_assessment_service_base_url + originalUrl).path
-    }
-  }))
-
-  app.use('/action/itemset/v3/review/*',  proxy(kp_assessment_service_base_url, {
-    proxyReqPathResolver: function (req) {
-      var originalUrl = req.originalUrl
-      originalUrl = originalUrl.replace('/action/', '')
-      return require('url').parse(kp_assessment_service_base_url + originalUrl).path
-    }
-  }))
-
+  // app.use('/action/content/v3/create',  proxy(kp_content_service_base_url, {
+  //   proxyReqPathResolver: function (req) {
+  //     var originalUrl = req.originalUrl
+  //     originalUrl = originalUrl.replace('/action/', '')
+  //     return require('url').parse(kp_content_service_base_url + originalUrl).path
+  //   }
+  // }))
+  //
+  // app.use('/action/content/v3/hierarchy/add',  proxy(kp_content_service_base_url, {
+  //   proxyReqPathResolver: function (req) {
+  //     var originalUrl = req.originalUrl
+  //     originalUrl = originalUrl.replace('/action/', '')
+  //     return require('url').parse(kp_content_service_base_url + originalUrl).path
+  //   }
+  // }))
+  //
+  // app.use('/action/content/v3/update/*',  proxy(kp_content_service_base_url, {
+  //   proxyReqPathResolver: function (req) {
+  //     var originalUrl = req.originalUrl
+  //     originalUrl = originalUrl.replace('/action/', '')
+  //     return require('url').parse(kp_content_service_base_url + originalUrl).path
+  //   }
+  // }))
+  //
+  // app.use('/action/content/v3/upload/*',  proxy(kp_learning_service_base_url, {
+  //   proxyReqPathResolver: function (req) {
+  //     var originalUrl = req.originalUrl
+  //     originalUrl = originalUrl.replace('/action/', '')
+  //     return require('url').parse(kp_learning_service_base_url + originalUrl).path
+  //   }
+  // }))
+  //
+  // app.use('/action/content/v3/review/*',  proxy(kp_learning_service_base_url, {
+  //   proxyReqPathResolver: function (req) {
+  //     var originalUrl = req.originalUrl
+  //     originalUrl = originalUrl.replace('/action/', '')
+  //     return require('url').parse(kp_learning_service_base_url + originalUrl).path
+  //   }
+  // }))
   // Proxy for content create , update & review END
-
   app.use('/action/content/v3/unlisted/publish/:contentId', permissionsHelper.checkPermission(),
     bodyParser.json(), proxy(contentProxyUrl, {
       preserveHostHdr: true,
@@ -153,7 +101,6 @@ module.exports = function (app) {
         return bodyContent
       }
     }))
-
   app.use('/action/data/v1/page/assemble', proxy(learnerServiceBaseUrl, {
     proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
     proxyReqPathResolver: function (req) {
@@ -162,8 +109,6 @@ module.exports = function (app) {
       return require('url').parse(learnerServiceBaseUrl + originalUrl).path
     }
   }))
-
-
   app.use('/action/data/v1/form/read', proxy(contentServiceBaseUrl, {
     proxyReqOptDecorator: proxyUtils.decorateRequestHeaders(),
     proxyReqPathResolver: function (req) {
@@ -172,20 +117,17 @@ module.exports = function (app) {
       return require('url').parse(contentServiceBaseUrl + originalUrl).path
     }
   }))
-
   const addCorsHeaders = (req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*')
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,PATCH,DELETE,OPTIONS')
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization,' +
       'cid, user-id, x-auth, Cache-Control, X-Requested-With, *')
-  
     if (req.method === 'OPTIONS') {
       res.sendStatus(200)
     } else {
       next()
     };
   }
-
   app.use('/action/review/comment/*', addCorsHeaders,
   proxy(envHelper.PORTAL_EXT_PLUGIN_URL, {
     proxyReqPathResolver: req => {
@@ -216,7 +158,6 @@ module.exports = function (app) {
       },
       userResDecorator: userResDecorator
   }))
-
   app.use('/action/*', permissionsHelper.checkPermission(), proxy(contentProxyUrl, {
     preserveHostHdr: true,
     limit: reqDataLimitOfContentUpload,
@@ -224,7 +165,6 @@ module.exports = function (app) {
     proxyReqPathResolver: proxyReqPathResolverMethod,
     userResDecorator: userResDecorator
   }))
-
   app.use('/v1/url/fetchmeta', proxy(contentProxyUrl, {
     proxyReqPathResolver: proxyReqPathResolverMethod
   }))
