@@ -540,7 +540,7 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
 
   canPublishContent() {
     // tslint:disable-next-line:max-line-length
-    return !!(this.router.url.includes('/contribute') && !this.resourceDetails.sampleContent === true && this.hasAccessFor(['CONTRIBUTOR']) && this.resourceStatus === 'Review' && this.userService.getUserId() !== this.resourceDetails.createdBy);
+    return !!(this.router.url.includes('/contribute') && !this.resourceDetails.sampleContent === true && this.hasAccessFor(['REVIEWER']) && this.resourceStatus === 'Review' && this.userService.getUserId() !== this.resourceDetails.createdBy);
   }
 
   canReviewContent() {
@@ -1046,6 +1046,9 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
   public createDefaultAssessmentItem() {
     const request = {
       url: `${this.configService.urlConFig.URLS.ASSESSMENT.CREATE}`,
+      header: {
+        'X-Channel-Id': this.programContext.rootorg_id
+      },
       data: this.prepareQuestionReqBody()
     };
 
@@ -1096,7 +1099,6 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
     };
-
     finalBody.request.assessment_item.metadata =  _.assign(finalBody.request.assessment_item.metadata, this.prepareSharedContext());
 
     if (_.isEqual(this.sessionContext.questionType, 'mcq')) {
@@ -1112,14 +1114,15 @@ export class QuestionListComponent implements OnInit, AfterViewInit, OnDestroy {
     const sharedContext = this.sharedContext.reduce((obj, context) => {
       return { ...obj, [context]: this.selectedSharedContext[context] || this.sessionContext[context] };
     }, {});
-
-    data = _.assign(data, ...(_.pickBy(sharedContext, _.identity)));
+    const sharedMetaData = this.helperService.fetchRootMetaData(this.sharedContext, this.sessionContext);
+    data = _.assign(data, ...(_.pickBy(sharedMetaData, _.identity)));
     if (!_.isEmpty(data['subject'])) {
       data['subject'] = data['subject'][0];
     }
     if (!_.isEmpty(data['medium'])) {
       data['medium'] = data['medium'][0];
     }
+  
     return data;
   }
 

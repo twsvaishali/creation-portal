@@ -43,6 +43,8 @@
   },
   "version": "enable",
   "frameworkCategories": [],
+  "orgFrameworkTerms": [],
+  "targetFrameworkTerms": [],
   "edge": {
     "properties": {
       "license": "License"
@@ -58,5 +60,5 @@
       }
     }
   },
-  "schema_restrict_api": true
+  "schema_restrict_api": false
 }

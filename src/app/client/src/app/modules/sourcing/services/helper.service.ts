@@ -21,7 +21,7 @@ export class HelperService {
   private _categoryMetaData$ = new Subject<any>();
   public readonly categoryMetaData$: Observable<any> = this._categoryMetaData$
     .asObservable().pipe(skipWhile(data => data === undefined || data === null));
-
+  private _selectedCollectionMetaData: any;
   constructor(private configService: ConfigService, private contentService: ContentService,
     private toasterService: ToasterService, private publicDataService: PublicDataService,
     private actionService: ActionService, private resourceService: ResourceService,
@@ -36,6 +36,7 @@ export class HelperService {
     if (programDetails.rootorg_id) {
       this.fetchChannelData(programDetails.rootorg_id);
     }
+    this.actionService.channelId = programDetails.rootorg_id;
   }
 
   getCategoryMetaData(category, channelId) {
@@ -51,6 +52,32 @@ export class HelperService {
 
   get selectedCategoryMetaData() {
     return this._categoryMetaData;
+  }
+
+  set selectedCollectionMetaData(data) {
+    this._selectedCollectionMetaData = data;
+  }
+
+  get selectedCollectionMetaData() {
+    return this._selectedCollectionMetaData;
+  }
+
+  checkIfCollectionFolder(data) {
+    // tslint:disable-next-line:max-line-length
+    if (data.mimeType === 'application/vnd.ekstep.content-collection' && data.visibility === 'Parent') {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  checkIfMainCollection (data) {
+    // tslint:disable-next-line:max-line-length
+    if (data.mimeType === 'application/vnd.ekstep.content-collection' && data.visibility === 'Default') {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   getLicences(): Observable<any> {
@@ -201,7 +228,10 @@ export class HelperService {
 
         const reqFormat = {
           source: `${baseUrl}/api/content/v1/read/${contentMetaData.identifier}`,
-          metadata: _.pick(contentMetaData, ['name', 'code', 'mimeType', 'framework', 'contentType']),
+          metadata: {..._.pick(this._selectedCollectionMetaData, ['framework']),
+                      ..._.pick(_.get(this._selectedCollectionMetaData, 'originData'), ['channel']),
+                       ..._.pick(contentMetaData, ['name', 'code', 'mimeType', 'contentType']),
+                        ...{'lastPublishedBy': this.userService.userProfile.userId}},
           collection: [
             {
               identifier: originData.textbookOriginId,
@@ -209,7 +239,7 @@ export class HelperService {
             }
           ]
         };
-        const option = {
+        const reqOption = {
           url: this.configService.urlConFig.URLS.BULKJOB.DOCK_IMPORT_V1,
           data: {
             request: {
@@ -219,7 +249,7 @@ export class HelperService {
             }
           }
         };
-        this.learnerService.post(option).subscribe((res: any) => {
+        this.learnerService.post(reqOption).subscribe((res: any) => {
           if (res && res.result) {
             const me = this;
             setTimeout(() => {
@@ -558,23 +588,23 @@ export class HelperService {
 
   mapContentTypesToCategories(nomContentTypes) {
       const mapping = {
-              "TeachingMethod" : "Teacher Resource",
-              "PedagogyFlow" : "Teacher Resource",
-              "FocusSpot" : "Teacher Resource",
-              "LearningOutcomeDefinition" : "Teacher Resource",
-              "PracticeQuestionSet" : "Practice Question Set",
-              "CuriosityQuestionSet": "Practice Question Set",
-              "MarkingSchemeRubric" : "Teacher Resource",
-              "ExplanationResource" : "Explanation Content",
-              "ExperientialResource" : "Learning Resource",
-              "ConceptMap" : "Learning Resource",
-              "SelfAssess" : "Course Assessment",
-              "ExplanationVideo" : "Explanation Content",
-              "ClassroomTeachingVideo" : "Explanation Content",
-              "ExplanationReadingMaterial" : "Learning Resource",
-              "PreviousBoardExamPapers" : "Learning Resource",
-              "LessonPlanResource" : "Teacher Resource",
-              "LearningActivity" : "Learning Resource",
+              'TeachingMethod' : 'Teacher Resource',
+              'PedagogyFlow' : 'Teacher Resource',
+              'FocusSpot' : 'Teacher Resource',
+              'LearningOutcomeDefinition' : 'Teacher Resource',
+              'PracticeQuestionSet' : 'Practice Question Set',
+              'CuriosityQuestionSet': 'Practice Question Set',
+              'MarkingSchemeRubric' : 'Teacher Resource',
+              'ExplanationResource' : 'Explanation Content',
+              'ExperientialResource' : 'Learning Resource',
+              'ConceptMap' : 'Learning Resource',
+              'SelfAssess' : 'Course Assessment',
+              'ExplanationVideo' : 'Explanation Content',
+              'ClassroomTeachingVideo' : 'Explanation Content',
+              'ExplanationReadingMaterial' : 'Learning Resource',
+              'PreviousBoardExamPapers' : 'Learning Resource',
+              'LessonPlanResource' : 'Teacher Resource',
+              'LearningActivity' : 'Learning Resource',
               };
       const oldContentTypes = _.keys(mapping);
       if (!_.isEmpty(nomContentTypes) && _.includes(oldContentTypes,  _.nth(nomContentTypes, 0))) {
@@ -586,5 +616,19 @@ export class HelperService {
       } else {
         return nomContentTypes;
       }
+  }
+
+  fetchRootMetaData(sharedContext, selectedSharedContext) {
+    return sharedContext.reduce((obj, context) => {
+              return { ...obj, ...(this.getContextObj(context, selectedSharedContext)) };
+            }, {});
+  }
+
+  getContextObj(context, selectedSharedContext) {
+    if (context === 'topic') { // Here topic is fetched from unitLevel meta
+      return {[context]: selectedSharedContext[context]};
+    } else {
+      return {[context]: this._selectedCollectionMetaData[context]};
+    }
   }
 }
