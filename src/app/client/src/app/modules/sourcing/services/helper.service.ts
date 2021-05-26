@@ -391,8 +391,8 @@ export class HelperService {
     this.toasterService.error(_.get(err, 'error.params.errmsg') || errorInfo.errorMsg);
   }
 
-  getContentOriginUrl(contentId) {
-    return this.programsService.getContentOriginEnvironment() + '/resources/play/content/' + contentId;
+  getContentOriginUrl(contentId, objectType = 'content') {
+    return this.programsService.getContentOriginEnvironment() + `/resources/play/${objectType}/${contentId}`;
   }
 
   getTextbookDetails(textbookId) {
@@ -692,5 +692,94 @@ export class HelperService {
     } else {
       return {[context]: this._selectedCollectionMetaData[context]};
     }
+  }
+
+  isIndividualAndNotSample(currentOrgRole, sampleContent) {
+    return !!(currentOrgRole === 'individual' && sampleContent !== true);
+  }
+   /**
+   * get content details by id and query param
+   */
+  getContent(contentId: string, option: any = { params: {} }): Observable<ServerResponse> {
+    const param = { fields: this.configService.editorConfig.DEFAULT_PARAMS_FIELDS };
+    const req = {
+        url: `${this.configService.urlConFig.URLS.CONTENT.GET}/${contentId}`,
+        param: { ...param, ...option.params }
+    };
+    return this.publicDataService.get(req).pipe(map((response: ServerResponse) => {
+        return response;
+    }));
+  }
+
+  manageSourcingActions (action, sessionContext, unitIdentifier, contentData, rejectComment = '', isMetadataOverridden =  false) {
+    const hierarchyObj  = _.get(sessionContext.hierarchyObj, 'hierarchy');
+    if (hierarchyObj) {
+      const rootOriginInfo = _.get(_.get(hierarchyObj, sessionContext.collection), 'originData');
+      let channel =  rootOriginInfo && rootOriginInfo.channel;
+      if (_.isUndefined(channel)) {
+        const originInfo = _.get(_.get(hierarchyObj, unitIdentifier), 'originData');
+        channel = originInfo && originInfo.channel;
+      }
+      const originData = {
+        textbookOriginId: _.get(_.get(hierarchyObj, sessionContext.collection), 'origin'),
+        unitOriginId: _.get(_.get(hierarchyObj, unitIdentifier), 'origin'),
+        channel: channel
+      };
+      if (originData.textbookOriginId && originData.unitOriginId && originData.channel) {
+        if (action === 'accept') {
+          action = isMetadataOverridden ? 'acceptWithChanges' : 'accept';
+          // tslint:disable-next-line:max-line-length
+          this.publishContentToDiksha(action, sessionContext.collection, contentData.identifier, originData, contentData);
+        } else if (action === 'reject' && rejectComment.length) {
+          // tslint:disable-next-line:max-line-length
+          this.publishContentToDiksha(action, sessionContext.collection, contentData.identifier, originData, contentData, rejectComment);
+        }
+      } else {
+        action === 'accept' ? this.toasterService.error(this.resourceService.messages.fmsg.m00102) :
+        this.toasterService.error(this.resourceService.messages.fmsg.m00100);
+        console.error('origin data missing');
+      }
+    } else {
+      action === 'accept' ? this.toasterService.error(this.resourceService.messages.emsg.approvingFailed) :
+      this.toasterService.error(this.resourceService.messages.fmsg.m00100);
+      console.error('origin data missing');
+    }
+  }
+
+  getCorrectionComments(contentMetaData, sessionContext) {
+    const id = _.get(contentMetaData, 'identifier');
+    const sourcingRejectedComments = _.get(sessionContext, 'hierarchyObj.sourcingRejectedComments');
+    let contentComment = '';
+    if (id && contentMetaData.status === "Draft" && contentMetaData.prevStatus  === "Review") {
+      // if the contributing org reviewer has requested for changes
+      contentComment = _.get(contentMetaData, 'rejectComment');
+    } else if (id && !_.isEmpty(_.get(contentMetaData, 'requestChanges')) &&
+    ((contentMetaData.status === "Draft" && contentMetaData.prevStatus === "Live") ||
+    contentMetaData.status === "Live")) {
+      // if the souring org reviewer has requested for changes
+      contentComment = _.get(contentMetaData, 'requestChanges');
+    } else  if (id && contentMetaData.status === 'Live' && !_.isEmpty(_.get(sourcingRejectedComments, id))) {
+        contentComment = _.get(sourcingRejectedComments, id);
+    }
+    
+    return contentComment;
+  }
+  updateQuestionSetStatus(questionsetId, status, comment?) {
+    const requestBody = {
+      request: {
+        questionset: {
+          status: status
+        }
+      }
+    };
+
+    // if (!_.isUndefined(comment)) {
+    //   requestBody.request.questionset['requestChanges'] = _.trim(comment);
+    // }
+    const option = {
+      url: `questionset/v4/system/update/${questionsetId}`,
+      data: requestBody
+    };
+    return this.actionService.patch(option);
   }
 }

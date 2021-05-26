@@ -172,7 +172,11 @@
             "polyfills": "projects/desktop/src/polyfills.ts",
             "tsConfig": "projects/desktop/tsconfig.app.json",
             "assets": [
-              { "glob": "**/*", "input": "./src/assets", "output": "./assets" },
+              {
+                "glob": "**/*",
+                "input": "./src/assets",
+                "output": "./assets"
+              },
               {
                 "glob": "**/*.*",
                 "input": "./node_modules/@project-sunbird/common-consumption-v8/assets",
@@ -254,7 +258,11 @@
             "tsConfig": "projects/desktop/tsconfig.spec.json",
             "karmaConfig": "projects/desktop/karma.conf.js",
             "assets": [
-              { "glob": "**/*", "input": "./src/assets", "output": "./assets" }
+              {
+                "glob": "**/*",
+                "input": "./src/assets",
+                "output": "./assets"
+              }
             ],
             "styles": [
               "node_modules/datatables.net-dt/css/jquery.dataTables.min.css",
@@ -330,5 +338,8 @@
     "@schematics/angular:directive": {
       "prefix": "app"
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
