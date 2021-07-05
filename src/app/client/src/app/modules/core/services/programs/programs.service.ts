@@ -29,24 +29,15 @@ import * as moment from 'moment';
 export class ProgramsService extends DataService implements CanActivate {
 
   private _programsList$ = new BehaviorSubject(undefined);
-  // private _allowToContribute$ = new BehaviorSubject(undefined);
   private _organisations = {};
-
   public readonly programsList$ = this._programsList$.asObservable()
     .pipe(skipWhile(data => data === undefined || data === null));
-
-  // public readonly allowToContribute$ = this._allowToContribute$.asObservable()
-  //   .pipe(skipWhile(data => data === undefined || data === null));
-
   public config: ConfigService;
   baseUrl: string;
   public http: HttpClient;
   private API_URL = this.publicDataService.post; // TODO: remove API_URL once service is deployed
-  ///private _contentTypes: any[];
-  //private _contentCategories: any[];
   private _overrideMetaData: any[];
   private _sourcingOrgReviewers: Array<any>;
-  // private orgUsers: Array<any>;
   public mvcStageData: any;
 
   private _programsNotificationData = new Subject();
@@ -72,9 +63,6 @@ export class ProgramsService extends DataService implements CanActivate {
    * initializes the service is the user is logged in;
    */
   public initialize() {
-    // this.enableContributeMenu().subscribe();
-    //this.getAllContentTypes().subscribe();
-    //this.getAllContentCategories().subscribe();
     this.getOverridableMetaDataConfig().subscribe();
     this.mapSlugstoOrgId();
 
