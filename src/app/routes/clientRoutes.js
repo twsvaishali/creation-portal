@@ -149,6 +149,7 @@ function getLocals(req) {
   locals.slug = slug || '';
   locals.enableQuestionSetEditor = envHelper.DOCK_QUESTIONSET_ENABLE;
   locals.dockSmsUrl = envHelper.DOCK_SMS_URL;
+  locals.publicStorageAccount = envHelper.SUNBIRD_PUBLIC_STORAGE_ACCOUNT_NAME;
   return locals
 }
 
